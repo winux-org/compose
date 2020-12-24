@@ -1,0 +1,58 @@
+
+services:
+  web:
+    image: nginx
+    volumes:
+    - $VROOTPATH/etc/nginx/templates:/etc/nginx/templates
+    - /home/artur/projs/winux-org/etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: always
+    ports:
+    - "80:80"
+    environment:
+    - NGINX_PORT=80
+    networks:
+    - internal
+
+  rabbitmq:
+    image: rabbitmq:3
+    ports:
+    - "5672:5672"
+    environment:
+    - RABBITMQ_ERLANG_COOKIE='secret cookie here'
+    networks:
+    - internal
+
+  postgres:
+    image: postgres
+    ports: 
+    - "5432:5432"
+    restart: always
+    volumes:
+      - /home/artur/projs/compose/postgres/docker-entrypoint-initdb.d/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh:ro
+      - /home/artur/projs/winux-org/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    environment:
+      POSTGRES_PASSWORD: tajnehaslo
+    networks:
+    - internal
+
+  winux-org:
+    build: "/home/artur/projs/winux-org/"
+    restart: always
+    ports:
+    - "9000:9000"
+    networks:
+    - internal
+
+  winux-frontend:
+    build: "/home/artur/projs/winux-frontend/"
+    restart: always
+    ports:
+    - "4200:4200"
+    networks:
+    - internal
+
+networks:
+  internal:
+    name: internal
+    external: false
+    driver: bridge
